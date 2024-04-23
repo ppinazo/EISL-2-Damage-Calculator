@@ -132,7 +132,6 @@ export interface Move extends Data<MoveName> {
     basePower: number;
   };
   readonly multihit?: number | number[];
-  readonly multiaccuracy?: boolean;
 }
 
 export interface Species {

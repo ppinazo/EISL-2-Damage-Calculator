@@ -42,7 +42,6 @@ export class Move implements State.Move {
   breaksProtect: boolean;
   isZ: boolean;
   isMax: boolean;
-  multiaccuracy: boolean;
 
   constructor(
     gen: I.Generation,
@@ -94,18 +93,14 @@ export class Move implements State.Move {
       });
     } else {
       if (data.multihit) {
-        if (data.multiaccuracy && typeof data.multihit === 'number') {
-          this.hits = options.hits || data.multihit;
+        if (typeof data.multihit === 'number') {
+          this.hits = data.multihit;
+        } else if (options.hits) {
+          this.hits = options.hits;
         } else {
-          if (typeof data.multihit === 'number') {
-            this.hits = data.multihit;
-          } else if (options.hits) {
-            this.hits = options.hits;
-          } else {
-            this.hits = (options.ability === 'Skill Link')
-              ? data.multihit[1]
-              : data.multihit[0] + 1;
-          }
+          this.hits = (options.ability === 'Skill Link')
+            ? data.multihit[1]
+            : data.multihit[0] + 1;
         }
       }
       this.timesUsedWithMetronome = options.timesUsedWithMetronome;
@@ -158,7 +153,6 @@ export class Move implements State.Move {
     this.breaksProtect = !!data.breaksProtect;
     this.isZ = !!data.isZ;
     this.isMax = !!data.isMax;
-    this.multiaccuracy = !!data.multiaccuracy;
 
     if (!this.bp) {
       // Assume max happiness for these moves because the calc doesn't support happiness

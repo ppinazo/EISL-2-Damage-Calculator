@@ -91,8 +91,9 @@ export function damageRange(
   // Standard Damage
   if (damage.length > 2) {
     const d = damage as number[];
-    if (d[0] > d[d.length - 1]) return [Math.min(...d), Math.max(...d)];
-    return [d[0], d[d.length - 1]];
+    return [d[7], d[7]];
+    //if (d[0] > d[d.length - 1]) return [Math.min(...d), Math.max(...d)];
+    //return [d[0], d[d.length - 1]];
   }
   // Fixed Parental Bond Damage
   if (typeof damage[0] === 'number' && typeof damage[1] === 'number') {
@@ -102,5 +103,5 @@ export function damageRange(
   const d = damage as [number[], number[]];
   if (d[0][0] > d[0][d[0].length - 1]) d[0] = d[0].slice().sort();
   if (d[1][0] > d[1][d[1].length - 1]) d[1] = d[1].slice().sort();
-  return [[d[0][0], d[1][0]], [d[0][d[0].length - 1], d[1][d[1].length - 1]]];
+  return [[d[0][7], d[1][7]], [d[0][7], d[1][7]]];
 }
