@@ -40,21 +40,16 @@ var Move = (function () {
         }
         else {
             if (data.multihit) {
-                if (data.multiaccuracy && typeof data.multihit === 'number') {
-                    this.hits = options.hits || data.multihit;
+                if (typeof data.multihit === 'number') {
+                    this.hits = data.multihit;
+                }
+                else if (options.hits) {
+                    this.hits = options.hits;
                 }
                 else {
-                    if (typeof data.multihit === 'number') {
-                        this.hits = data.multihit;
-                    }
-                    else if (options.hits) {
-                        this.hits = options.hits;
-                    }
-                    else {
-                        this.hits = (options.ability === 'Skill Link')
-                            ? data.multihit[1]
-                            : data.multihit[0] + 1;
-                    }
+                    this.hits = (options.ability === 'Skill Link')
+                        ? data.multihit[1]
+                        : data.multihit[0] + 1;
                 }
             }
             this.timesUsedWithMetronome = options.timesUsedWithMetronome;
@@ -98,7 +93,6 @@ var Move = (function () {
         this.breaksProtect = !!data.breaksProtect;
         this.isZ = !!data.isZ;
         this.isMax = !!data.isMax;
-        this.multiaccuracy = !!data.multiaccuracy;
         if (!this.bp) {
             if (['return', 'frustration', 'pikapapow', 'veeveevolley'].includes(data.id)) {
                 this.bp = 102;

@@ -286,12 +286,6 @@ function checkDauntlessShield(source, gen) {
     }
 }
 exports.checkDauntlessShield = checkDauntlessShield;
-function checkWindRider(source, attackingSide) {
-    if (source.hasAbility('Wind Rider') && attackingSide.isTailwind) {
-        source.boosts.atk = Math.min(6, source.boosts.atk + 1);
-    }
-}
-exports.checkWindRider = checkWindRider;
 function checkEmbody(source, gen) {
     if (gen.num < 9)
         return;
@@ -335,18 +329,16 @@ function checkSeedBoost(pokemon, field) {
                     ? Math.max(-6, pokemon.boosts.spd - 1)
                     : Math.min(6, pokemon.boosts.spd + 1);
             }
-            pokemon.item = '';
         }
     }
 }
 exports.checkSeedBoost = checkSeedBoost;
-function checkMultihitBoost(gen, attacker, defender, move, field, desc, attackerUsedItem, defenderUsedItem) {
-    if (attackerUsedItem === void 0) { attackerUsedItem = false; }
-    if (defenderUsedItem === void 0) { defenderUsedItem = false; }
+function checkMultihitBoost(gen, attacker, defender, move, field, desc, usedWhiteHerb) {
+    if (usedWhiteHerb === void 0) { usedWhiteHerb = false; }
     if (move.named('Gyro Ball', 'Electro Ball') && defender.hasAbility('Gooey', 'Tangling Hair')) {
-        if (attacker.hasItem('White Herb') && !attackerUsedItem) {
+        if (attacker.hasItem('White Herb') && !usedWhiteHerb) {
             desc.attackerItem = attacker.item;
-            attackerUsedItem = true;
+            usedWhiteHerb = true;
         }
         else {
             attacker.boosts.spe = Math.max(attacker.boosts.spe - 1, -6);
@@ -358,43 +350,6 @@ function checkMultihitBoost(gen, attacker, defender, move, field, desc, attacker
         attacker.boosts.atk = Math.min(attacker.boosts.atk + 1, 6);
         attacker.stats.atk = getModifiedStat(attacker.rawStats.atk, attacker.boosts.atk, gen);
     }
-    var atkSimple = attacker.hasAbility('Simple') ? 2 : 1;
-    var defSimple = defender.hasAbility('Simple') ? 2 : 1;
-    if ((!defenderUsedItem) &&
-        (defender.hasItem('Luminous Moss') && move.hasType('Water')) ||
-        (defender.hasItem('Maranga Berry') && move.category === 'Special') ||
-        (defender.hasItem('Kee Berry') && move.category === 'Physical')) {
-        var defStat = defender.hasItem('Kee Berry') ? 'def' : 'spd';
-        if (attacker.hasAbility('Unaware')) {
-            desc.attackerAbility = attacker.ability;
-        }
-        else {
-            if (defender.hasAbility('Contrary')) {
-                desc.defenderAbility = defender.ability;
-                if (defender.hasItem('White Herb') && !defenderUsedItem) {
-                    desc.defenderItem = defender.item;
-                    defenderUsedItem = true;
-                }
-                else {
-                    defender.boosts[defStat] = Math.max(-6, defender.boosts[defStat] - defSimple);
-                }
-            }
-            else {
-                defender.boosts[defStat] = Math.min(6, defender.boosts[defStat] + defSimple);
-            }
-            if (defSimple === 2)
-                desc.defenderAbility = defender.ability;
-            defender.stats[defStat] = getModifiedStat(defender.rawStats[defStat], defender.boosts[defStat], gen);
-            desc.defenderItem = defender.item;
-            defenderUsedItem = true;
-        }
-    }
-    if (defender.hasAbility('Seed Sower')) {
-        field.terrain = 'Grassy';
-    }
-    if (defender.hasAbility('Sand Spit')) {
-        field.weather = 'Sand';
-    }
     if (defender.hasAbility('Stamina')) {
         if (attacker.hasAbility('Unaware')) {
             desc.attackerAbility = attacker.ability;
@@ -405,34 +360,25 @@ function checkMultihitBoost(gen, attacker, defender, move, field, desc, attacker
             desc.defenderAbility = defender.ability;
         }
     }
-    else if (defender.hasAbility('Water Compaction') && move.hasType('Water')) {
-        if (attacker.hasAbility('Unaware')) {
-            desc.attackerAbility = attacker.ability;
-        }
-        else {
-            defender.boosts.def = Math.min(defender.boosts.def + 2, 6);
-            defender.stats.def = getModifiedStat(defender.rawStats.def, defender.boosts.def, gen);
-            desc.defenderAbility = defender.ability;
-        }
-    }
     else if (defender.hasAbility('Weak Armor')) {
         if (attacker.hasAbility('Unaware')) {
             desc.attackerAbility = attacker.ability;
         }
         else {
-            if (defender.hasItem('White Herb') && !defenderUsedItem && defender.boosts.def === 0) {
+            if (defender.hasItem('White Herb') && !usedWhiteHerb) {
                 desc.defenderItem = defender.item;
-                defenderUsedItem = true;
+                usedWhiteHerb = true;
             }
             else {
                 defender.boosts.def = Math.max(defender.boosts.def - 1, -6);
                 defender.stats.def = getModifiedStat(defender.rawStats.def, defender.boosts.def, gen);
             }
-            desc.defenderAbility = defender.ability;
         }
         defender.boosts.spe = Math.min(defender.boosts.spe + 2, 6);
         defender.stats.spe = getFinalSpeed(gen, defender, field, field.defenderSide);
+        desc.defenderAbility = defender.ability;
     }
+    var simple = attacker.hasAbility('Simple') ? 2 : 1;
     if (move.dropsStats) {
         if (attacker.hasAbility('Unaware')) {
             desc.attackerAbility = attacker.ability;
@@ -445,30 +391,20 @@ function checkMultihitBoost(gen, attacker, defender, move, field, desc, attacker
                 desc.attackerAbility = attacker.ability;
             }
             else {
-                boosts = Math.max(-6, boosts - move.dropsStats * atkSimple);
+                boosts = Math.max(-6, boosts - move.dropsStats * simple);
+                if (simple > 1)
+                    desc.attackerAbility = attacker.ability;
             }
-            if (atkSimple === 2)
-                desc.attackerAbility = attacker.ability;
-            if (attacker.hasItem('White Herb') && attacker.boosts[stat] < 0 && !attackerUsedItem) {
-                boosts += move.dropsStats * atkSimple;
+            if (attacker.hasItem('White Herb') && attacker.boosts[stat] < 0 && !usedWhiteHerb) {
+                boosts += move.dropsStats * simple;
                 desc.attackerItem = attacker.item;
-                attackerUsedItem = true;
+                usedWhiteHerb = true;
             }
             attacker.boosts[stat] = boosts;
             attacker.stats[stat] = getModifiedStat(attacker.rawStats[stat], defender.boosts[stat], gen);
         }
     }
-    if (defender.hasAbility('Mummy', 'Wandering Spirit', 'Lingering Aroma') && move.flags.contact) {
-        var oldAttackerAbility = attacker.ability;
-        attacker.ability = defender.ability;
-        if (desc.attackerAbility) {
-            desc.defenderAbility = defender.ability;
-        }
-        if (defender.hasAbility('Wandering Spirit')) {
-            defender.ability = oldAttackerAbility;
-        }
-    }
-    return [attackerUsedItem, defenderUsedItem];
+    return usedWhiteHerb;
 }
 exports.checkMultihitBoost = checkMultihitBoost;
 function chainMods(mods, lowerBound, upperBound) {
@@ -552,59 +488,11 @@ function getShellSideArmCategory(source, target) {
     return physicalDamage > specialDamage ? 'Physical' : 'Special';
 }
 exports.getShellSideArmCategory = getShellSideArmCategory;
-function getWeight(pokemon, desc, role) {
-    var weightHG = pokemon.weightkg * 10;
-    var abilityFactor = pokemon.hasAbility('Heavy Metal') ? 2
-        : pokemon.hasAbility('Light Metal') ? 0.5
-            : 1;
-    if (abilityFactor !== 1) {
-        weightHG = Math.max(Math.trunc(weightHG * abilityFactor), 1);
-        desc["".concat(role, "Ability")] = pokemon.ability;
-    }
-    if (pokemon.hasItem('Float Stone')) {
-        weightHG = Math.max(Math.trunc(weightHG * 0.5), 1);
-        desc["".concat(role, "Item")] = pokemon.item;
-    }
-    return weightHG / 10;
+function getWeightFactor(pokemon) {
+    return pokemon.hasAbility('Heavy Metal') ? 2
+        : (pokemon.hasAbility('Light Metal') || pokemon.hasItem('Float Stone')) ? 0.5 : 1;
 }
-exports.getWeight = getWeight;
-function getStabMod(pokemon, move, desc) {
-    var stabMod = 4096;
-    if (pokemon.hasOriginalType(move.type)) {
-        stabMod += 2048;
-    }
-    else if (pokemon.hasAbility('Protean', 'Libero') && !pokemon.teraType) {
-        stabMod += 2048;
-        desc.attackerAbility = pokemon.ability;
-    }
-    var teraType = pokemon.teraType;
-    if (teraType === move.type && teraType !== 'Stellar') {
-        stabMod += 2048;
-        desc.attackerTera = teraType;
-    }
-    if (pokemon.hasAbility('Adaptability') && pokemon.hasType(move.type)) {
-        stabMod += teraType && pokemon.hasOriginalType(teraType) ? 1024 : 2048;
-        desc.attackerAbility = pokemon.ability;
-    }
-    return stabMod;
-}
-exports.getStabMod = getStabMod;
-function getStellarStabMod(pokemon, move, stabMod, turns) {
-    if (stabMod === void 0) { stabMod = 1; }
-    if (turns === void 0) { turns = 0; }
-    var isStellarBoosted = pokemon.teraType === 'Stellar' &&
-        ((move.isStellarFirstUse && turns === 0) || pokemon.named('Terapagos-Stellar'));
-    if (isStellarBoosted) {
-        if (pokemon.hasOriginalType(move.type)) {
-            stabMod += 2048;
-        }
-        else {
-            stabMod = 4915;
-        }
-    }
-    return stabMod;
-}
-exports.getStellarStabMod = getStellarStabMod;
+exports.getWeightFactor = getWeightFactor;
 function countBoosts(gen, boosts) {
     var e_5, _a;
     var sum = 0;
@@ -629,20 +517,16 @@ function countBoosts(gen, boosts) {
     return sum;
 }
 exports.countBoosts = countBoosts;
-function getStatDescriptionText(gen, pokemon, stat, natureName) {
+function getEVDescriptionText(gen, pokemon, stat, natureName) {
     var nature = gen.natures.get((0, util_1.toID)(natureName));
-    var desc = pokemon.evs[stat] +
-        (stat === 'hp' || nature.plus === nature.minus ? ''
+    return (pokemon.evs[stat] +
+        (nature.plus === nature.minus ? ''
             : nature.plus === stat ? '+'
                 : nature.minus === stat ? '-'
                     : '') + ' ' +
-        stats_1.Stats.displayStat(stat);
-    var iv = pokemon.ivs[stat];
-    if (iv !== 31)
-        desc += " ".concat(iv, " IVs");
-    return desc;
+        stats_1.Stats.displayStat(stat));
 }
-exports.getStatDescriptionText = getStatDescriptionText;
+exports.getEVDescriptionText = getEVDescriptionText;
 function handleFixedDamageMoves(attacker, move) {
     if (move.named('Seismic Toss', 'Night Shade')) {
         return attacker.level;

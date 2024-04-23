@@ -1,29 +1,4 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 exports.__esModule = true;
 
 var desc_1 = require("./desc");
@@ -76,9 +51,7 @@ function damageRange(damage) {
         return [damage, damage];
     if (damage.length > 2) {
         var d_1 = damage;
-        if (d_1[0] > d_1[d_1.length - 1])
-            return [Math.min.apply(Math, __spreadArray([], __read(d_1), false)), Math.max.apply(Math, __spreadArray([], __read(d_1), false))];
-        return [d_1[0], d_1[d_1.length - 1]];
+        return [d_1[7], d_1[7]];
     }
     if (typeof damage[0] === 'number' && typeof damage[1] === 'number') {
         return [[damage[0], damage[1]], [damage[0], damage[1]]];
@@ -88,7 +61,7 @@ function damageRange(damage) {
         d[0] = d[0].slice().sort();
     if (d[1][0] > d[1][d[1].length - 1])
         d[1] = d[1].slice().sort();
-    return [[d[0][0], d[1][0]], [d[0][d[0].length - 1], d[1][d[1].length - 1]]];
+    return [[d[0][7], d[1][7]], [d[0][7], d[1][7]]];
 }
 exports.damageRange = damageRange;
 //# sourceMappingURL=result.js.map

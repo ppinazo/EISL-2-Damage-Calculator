@@ -508,18 +508,8 @@ $(".move-selector").change(function () {
 	var stat = move.category === 'Special' ? 'spa' : 'atk';
 	var dropsStats =
 		move.self && move.self.boosts && move.self.boosts[stat] && move.self.boosts[stat] < 0;
-	if (Array.isArray(move.multihit) || (!isNaN(move.multihit) && move.multiaccuracy)) {
+	if (Array.isArray(move.multihit)) {
 		moveGroupObj.children(".stat-drops").hide();
-		moveGroupObj.children(".move-hits").empty();
-		if (!isNaN(move.multihit)) {
-			for (var i = 1; i <= move.multihit; i++) {
-				moveGroupObj.children(".move-hits").append("<option value=" + i + ">" + i + " hits</option>");
-			}
-		} else {
-			for (var i = move.multihit[0]; i <= move.multihit[1]; i++) {
-				moveGroupObj.children(".move-hits").append("<option value=" + i + ">" + i + " hits</option>");
-			}
-		}
 		moveGroupObj.children(".move-hits").show();
 		var pokemon = $(this).closest(".poke-info");
 		var moveHits =
@@ -571,7 +561,6 @@ $(".set-selector").change(function () {
 			stickyMoves.clearStickyMove();
 		}
 		pokeObj.find(".teraToggle").prop("checked", isAutoTera);
-		pokeObj.find(".max").prop("checked", false);
 		stellarButtonsVisibility(pokeObj, 0);
 		pokeObj.find(".boostedStat").val("");
 		pokeObj.find(".analysis").attr("href", smogonAnalysis(pokemonName));
@@ -599,7 +588,7 @@ $(".set-selector").change(function () {
 			$(this).closest('.poke-info').find(".extraSetAbilities").text(listAbilities.join(', '));
 			if (gen >= 2) $(this).closest('.poke-info').find(".item-pool").show();
 			$(this).closest('.poke-info').find(".extraSetItems").text(listItems.join(', '));
-			if (gen !== 8 && gen !== 1) {
+			if (gen >= 9 || gen === 7 || gen === 6 || gen === 5 || gen === 4 || gen === 3) {
 				$(this).closest('.poke-info').find(".role-pool").show();
 				if (gen >= 9) $(this).closest('.poke-info').find(".tera-type-pool").show();
 			}
@@ -653,7 +642,7 @@ $(".set-selector").change(function () {
 			}
 			var setMoves = set.moves;
 			if (randset) {
-				if (gen === 8 || gen === 1) {
+				if (gen < 9 && gen !== 7 && gen !== 6 && gen !== 5 && gen !== 4 && gen !== 3) {
 					setMoves = randset.moves;
 				} else {
 					setMoves = [];
@@ -784,6 +773,7 @@ function showFormes(formeObj, pokemonName, pokemon, baseFormeName) {
 function stellarButtonsVisibility(pokeObj, vis) {
 	var fullSetName = pokeObj.find("input.set-selector").val();
 	var pokemonName = fullSetName.substring(0, fullSetName.indexOf(" ("));
+	console.log(pokemonName);
 	var moveObjs = [
 		pokeObj.find(".move1"),
 		pokeObj.find(".move2"),
@@ -816,48 +806,22 @@ $(".teraToggle").change(function () {
 	var curForme = forme.val();
 	if (forme.is(":hidden")) return;
 	var container = $(this).closest(".info-group").siblings();
-	// Ogerpon and Terapagos mechs
-	if (startsWith(curForme, "Ogerpon")) {
-		if (
-			curForme !== "Ogerpon" && !endsWith(curForme, "Tera") &&
-			container.find(".item").val() !== curForme.split("-")[1] + " Mask"
-		) return;
-		if (this.checked) {
-			var newForme = curForme === "Ogerpon" ? "Ogerpon-Teal-Tera" : curForme + "-Tera";
-			forme.val(newForme);
-			container.find(".ability").val("Embody Aspect (" + newForme.split("-")[1] + ")");
-			return;
-		}
-		if (!endsWith(curForme, "Tera")) return;
-		var newForme = curForme === "Ogerpon-Teal-Tera" ? "Ogerpon" : curForme.slice(0, -5);
+	// Ogerpon mechs
+	if (!startsWith(curForme, "Ogerpon")) return;
+	if (
+		curForme !== "Ogerpon" && !endsWith(curForme, "Tera") &&
+		container.find(".item").val() !== curForme.split("-")[1] + " Mask"
+	) return;
+	if (this.checked) {
+		var newForme = curForme === "Ogerpon" ? "Ogerpon-Teal-Tera" : curForme + "-Tera";
 		forme.val(newForme);
-		container.find(".ability").val(pokedex[newForme].abilities[0]);
-	} else if (startsWith(curForme, "Terapagos")) {
-		if (this.checked) {
-			var newForme = "Terapagos-Stellar";
-
-			forme.val(newForme);
-			container.find(".ability").val(pokedex[newForme].abilities[0]);
-
-			for (var property in pokedex[newForme].bs) {
-				var baseStat = container.find("." + property).find(".base");
-				baseStat.val(pokedex[newForme].bs[property]);
-				baseStat.keyup();
-			}
-			return;
-		}
-
-		if (!endsWith(curForme, "Stellar")) return;
-		var newForme = "Terapagos-Terastal";
-
-		forme.val(newForme);
-		container.find(".ability").val(pokedex[newForme].abilities[0]);
-		for (var property in pokedex[newForme].bs) {
-			var baseStat = container.find("." + property).find(".base");
-			baseStat.val(pokedex[newForme].bs[property]);
-			baseStat.keyup();
-		}
+		container.find(".ability").val("Embody Aspect (" + newForme.split("-")[1] + ")");
+		return;
 	}
+	if (!endsWith(curForme, "Tera")) return;
+	var newForme = curForme === "Ogerpon-Teal-Tera" ? "Ogerpon" : curForme.slice(0, -5);
+	forme.val(newForme);
+	container.find(".ability").val(pokedex[newForme].abilities[0]);
 });
 
 $(".forme").change(function () {
@@ -933,6 +897,7 @@ function correctHiddenPower(pokemon) {
 			// Otherwise, use the default preset hidden power IVs that PS would use
 			var hpIVs = calc.Stats.getHiddenPowerIVs(GENERATION, m[1]);
 			if (!hpIVs) continue; // some impossible type was specified, ignore
+
 			pokemon.ivs = pokemon.ivs || {hp: 31, at: 31, df: 31, sa: 31, sd: 31, sp: 31};
 			pokemon.dvs = pokemon.dvs || {hp: 15, at: 15, df: 15, sa: 15, sd: 15, sp: 15};
 			for (var stat in hpIVs) {
@@ -941,10 +906,10 @@ function correctHiddenPower(pokemon) {
 			}
 			if (gen < 3) {
 				pokemon.dvs.hp = calc.Stats.getHPDV({
-					atk: pokemon.ivs.at || 31,
-					def: pokemon.ivs.df || 31,
-					spe: pokemon.ivs.sp || 31,
-					spc: pokemon.ivs.sa || 31
+					atk: pokemon.ivs.at,
+					def: pokemon.ivs.df,
+					spe: pokemon.ivs.sp,
+					spc: pokemon.ivs.sa
 				});
 				pokemon.ivs.hp = calc.Stats.DVToIV(pokemon.dvs.hp);
 			}
@@ -970,7 +935,7 @@ function createPokemon(pokeInfo) {
 			evs[stat] = (set.evs && typeof set.evs[legacyStat] !== "undefined") ? set.evs[legacyStat] : 0;
 		}
 		var moveNames = set.moves;
-		if (isRandoms && (gen !== 8 && gen !== 1)) {
+		if (isRandoms && (gen >= 9 || gen === 7 || gen === 6 || gen === 5 || gen === 4 || gen === 3)) {
 			moveNames = [];
 			for (var role in set.roles) {
 				for (var q = 0; q < set.roles[role].moves.length; q++) {
@@ -1030,12 +995,6 @@ function createPokemon(pokeInfo) {
 		var item = pokeInfo.find(".item").val();
 		var isDynamaxed = pokeInfo.find(".max").prop("checked");
 		var teraType = pokeInfo.find(".teraToggle").is(":checked") ? pokeInfo.find(".teraType").val() : undefined;
-		var opts = {
-			ability: ability,
-			item: item,
-			isDynamaxed: isDynamaxed,
-			teraType: teraType,
-		};
 		pokeInfo.isDynamaxed = isDynamaxed;
 		calcHP(pokeInfo);
 		var curHP = ~~pokeInfo.find(".current-hp").val();
@@ -1061,10 +1020,10 @@ function createPokemon(pokeInfo) {
 			status: CALC_STATUS[pokeInfo.find(".status").val()],
 			toxicCounter: status === 'Badly Poisoned' ? ~~pokeInfo.find(".toxic-counter").val() : 0,
 			moves: [
-				getMoveDetails(pokeInfo.find(".move1"), opts),
-				getMoveDetails(pokeInfo.find(".move2"), opts),
-				getMoveDetails(pokeInfo.find(".move3"), opts),
-				getMoveDetails(pokeInfo.find(".move4"), opts),
+				getMoveDetails(pokeInfo.find(".move1"), name, ability, item, isDynamaxed),
+				getMoveDetails(pokeInfo.find(".move2"), name, ability, item, isDynamaxed),
+				getMoveDetails(pokeInfo.find(".move3"), name, ability, item, isDynamaxed),
+				getMoveDetails(pokeInfo.find(".move4"), name, ability, item, isDynamaxed)
 			],
 			overrides: {
 				baseStats: baseStats,
@@ -1080,7 +1039,7 @@ function getGender(gender) {
 	return 'F';
 }
 
-function getMoveDetails(moveInfo, opts) {
+function getMoveDetails(moveInfo, species, ability, item, useMax) {
 	var moveName = moveInfo.find("select.move-selector").val();
 	var isZMove = gen > 6 && moveInfo.find("input.move-z").prop("checked");
 	var isCrit = moveInfo.find(".move-crit").prop("checked");
@@ -1092,22 +1051,11 @@ function getMoveDetails(moveInfo, opts) {
 		basePower: +moveInfo.find(".move-bp").val(),
 		type: moveInfo.find(".move-type").val()
 	};
-	if (moveName === 'Tera Blast') {
-		// custom logic for stellar type tera blast
-		var isStellar = opts.teraType === 'Stellar';
-		var statDrops = moveInfo.find('.stat-drops');
-		var dropsStats = statDrops.is(':visible');
-		if (isStellar !== dropsStats) {
-			// update stat drop dropdown here
-			if (isStellar) statDrops.show(); else statDrops.hide();
-		}
-		if (isStellar) overrides.self = {boosts: {atk: -1, spa: -1}};
-	}
 	if (gen >= 4) overrides.category = moveInfo.find(".move-cat").val();
 	return new calc.Move(gen, moveName, {
-		ability: opts.ability, item: opts.item, useZ: isZMove, species: opts.species, isCrit: isCrit, hits: hits,
+		ability: ability, item: item, useZ: isZMove, species: species, isCrit: isCrit, hits: hits,
 		isStellarFirstUse: isStellarFirstUse, timesUsed: timesUsed, timesUsedWithMetronome: timesUsedWithMetronome,
-		overrides: overrides, useMax: opts.isDynamaxed
+		overrides: overrides, useMax: useMax
 	});
 }
 
@@ -1303,7 +1251,7 @@ function getFirstValidSetOption() {
 	var sets = getSetOptions();
 	// NB: The first set is never valid, so we start searching after it.
 	for (var i = 1; i < sets.length; i++) {
-		if (sets[i].id && sets[i].id.indexOf('(Blank Set)') === -1) return sets[i];
+		if (sets[i].id) return sets[i];
 	}
 	return undefined;
 }

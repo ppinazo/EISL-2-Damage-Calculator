@@ -19,7 +19,6 @@ export interface RawDesc {
     defenseEVs?: string;
     hits?: number;
     alliesFainted?: number;
-    isStellarFirstUse?: boolean;
     isBeadsOfRuin?: boolean;
     isSwordOfRuin?: boolean;
     isTabletsOfRuin?: boolean;
@@ -58,7 +57,11 @@ export declare function getRecoil(gen: Generation, attacker: Pokemon, defender: 
     text: string;
 };
 export declare function getKOChance(gen: Generation, attacker: Pokemon, defender: Pokemon, move: Move, field: Field, damage: Damage, err?: boolean): {
-    chance: number | undefined;
+    chance: number;
     n: number;
     text: string;
+} | {
+    n: number;
+    text: string;
+    chance?: undefined;
 };

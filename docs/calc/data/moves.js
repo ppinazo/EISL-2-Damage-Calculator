@@ -373,7 +373,7 @@ var ADV_PATCH = {
     Surf: { target: 'allAdjacentFoes' },
     Thief: { makesContact: true },
     Thrash: { makesContact: true },
-    'Triple Kick': { makesContact: true, multihit: 3, multiaccuracy: true },
+    'Triple Kick': { makesContact: true, multihit: 3 },
     'Vine Whip': { makesContact: true },
     Waterfall: { makesContact: true },
     Wrap: { makesContact: true },
@@ -3590,7 +3590,6 @@ var SS_PATCH = {
         category: 'Physical',
         makesContact: true,
         multihit: 3,
-        multiaccuracy: true,
         zp: 120,
         maxPower: 140
     },
@@ -4607,8 +4606,7 @@ var SV_PATCH = {
         maxPower: 90,
         makesContact: true,
         isSlicing: true,
-        multihit: 10,
-        multiaccuracy: true
+        multihit: 10
     },
     Pounce: {
         bp: 50,

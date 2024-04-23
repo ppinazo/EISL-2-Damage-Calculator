@@ -1,8 +1,3 @@
-var PC_HANDLER = function () {
-	setTimeout(performCalculations, 0);
-};
-var damageResults;
-
 $("#p2 .ability").bind("keyup change", function () {
 	autosetWeather($(this).val(), 1);
 	autosetTerrain($(this).val(), 1);
@@ -27,6 +22,7 @@ for (var i = 0; i < 4; i++) {
 	});
 }
 
+var damageResults;
 function performCalculations() {
 	var p1info = $("#p1");
 	var p2info = $("#p2");
@@ -117,13 +113,13 @@ function displayDamageHits(damage) {
 	// Fixed Damage
 	if (typeof damage === 'number') return damage;
 	// Standard Damage
-	if (damage.length > 2) return damage.join(', ');
+	if (damage.length > 2) return damage[7];
 	// Fixed Parental Bond Damage
 	if (typeof damage[0] === 'number' && typeof damage[1] === 'number') {
 		return '1st Hit: ' + damage[0] + '; 2nd Hit: ' + damage[1];
 	}
 	// Parental Bond Damage
-	return '1st Hit: ' + damage[0].join(', ') + '; 2nd Hit: ' + damage[1].join(', ');
+	return '1st Hit: ' + damage[0][7] + '; 2nd Hit: ' + damage[1][7];
 }
 
 function findDamageResult(resultMoveObj) {
@@ -170,8 +166,6 @@ $(".mode").change(function () {
 		window.location.replace('randoms' + linkExtension + '?' + params);
 	} else if (mode === 'one-vs-one') {
 		window.location.replace('index' + linkExtension + '?' + params);
-	} else if (mode === "oms") {
-		window.location.replace('oms' + linkExtension);
 	} else {
 		window.location.replace('honkalculate' + linkExtension + '?' + params);
 	}
@@ -199,7 +193,9 @@ $(document).ready(function () {
 			}
 		}
 	}
-	$(".calc-trigger").bind("change keyup", PC_HANDLER);
+	$(".calc-trigger").bind("change keyup", function () {
+		setTimeout(performCalculations, 0);
+	});
 	performCalculations();
 });
 
