@@ -7463,7 +7463,7 @@ var SM_PATCH = {
     },
     Wishiwashi: {
         types: ['Water'],
-        bs: { hp: 45, at: 20, df: 20, sa: 25, sd: 25, sp: 40 },
+        bs: { hp: 90, at: 40, df: 40, sa: 50, sd: 50, sp: 80 },
         weightkg: 0.3,
         otherFormes: ['Wishiwashi-School'],
         abilities: { 0: 'Schooling' }
